@@ -26,6 +26,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/mitchellh/go-homedir"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/multiformats/go-multibase"
 	"github.com/urfave/cli/v2"
 
@@ -239,6 +240,16 @@ func GetAddressInfo(ctx context.Context, fapi v1api.FullNode, miner address.Addr
 	minerInfo, err := fapi.StateMinerInfo(ctx, miner, shared.EmptyTSK)
 	if err != nil {
 		return nil, err
+	}
+	// diy addr
+	if addr := os.Getenv("MULT_ADDR"); addr != "" {
+		mult, err := multiaddr.NewMultiaddr(addr)
+		if err != nil {
+			return nil, err
+		}
+		tmp := make([][]byte, 0)
+		tmp = append(tmp, mult.Bytes())
+		minerInfo.Multiaddrs = tmp
 	}
 	addrs, err := utils.ConvertMultiaddr(minerInfo.Multiaddrs)
 	if err != nil {
